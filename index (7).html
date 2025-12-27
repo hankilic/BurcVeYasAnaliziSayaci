@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Burç & Hassas Yaş Analizi</title>
+
+  <style>
+    :root {
+      --element-color: #6a0dad;
+      --element-bg: radial-gradient(circle at bottom, #1B2735 0%, #090A0F 100%);
+      --element-shadow: rgba(150, 50, 255, 0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.6s ease; }
+
+    body {
+      background: var(--element-bg);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+      padding: 10px;
+    }
+
+    /* --- ARKA PLAN EFEKTLERİ (Yıldızlar ve Gökyüzü) --- */
+    .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--duration) infinite ease-in-out; z-index: 0; }
+    @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+    
+    .celestial { position: absolute; border-radius: 50%; z-index: 0; }
+    .sun { width: 60px; height: 60px; background: radial-gradient(circle, #ffd200 0%, #f7941e 100%); box-shadow: 0 0 40px #f7941e; top: 5%; right: 5%; animation: float 10s infinite ease-in-out; }
+    .moon { width: 40px; height: 40px; background: radial-gradient(circle, #d1d1d1 0%, #8e8e8e 100%); box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); bottom: 5%; left: 5%; animation: float 12s infinite ease-in-out reverse; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+    /* --- ANA PANEL (KONTEYNER) TASARIMI --- */
+    .container {
+      background: rgba(10, 5, 30, 0.85);
+      backdrop-filter: blur(15px);
+      border: 2px solid var(--element-color);
+      border-radius: 25px;
+      padding: 25px 20px;
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 40px var(--element-shadow);
+      z-index: 10;
+      margin: auto;
+    }
+
+    h1 { color: #e0b0ff; margin-bottom: 15px; font-size: 22px; }
+    
+    .input-group { 
+      margin: 15px 0; 
+      display: flex; 
+      justify-content: center; 
+      gap: 8px; 
+      flex-wrap: nowrap;
+    }
+    
+    input {
+      padding: 12px 5px; 
+      border: none; 
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1); 
+      color: white;
+      width: 100%; 
+      max-width: 80px;
+      text-align: center; 
+      font-size: 16px;
+    }
+    input::-webkit-inner-spin-button { display: none; }
+    input:focus { outline: 2px solid var(--element-color); background: rgba(255, 255, 255, 0.2); }
+
+    button {
+      margin-top: 10px; 
+      padding: 14px 40px;
+      background: var(--element-color); 
+      color: white;
+      border: none; 
+      border-radius: 12px; 
+      cursor: pointer;
+      font-size: 18px; 
+      font-weight: bold; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 250px;
+    }
+    button:active { transform: scale(0.95); }
+
+    /* --- SAYAÇ VE SONUÇ ALANI TASARIMI --- */
+    #yas-sayaci { margin: 20px 0; line-height: 1.5; font-size: 15px; }
+    .highlight-text { color: var(--element-color); font-weight: bold; font-size: 1.2em; display: block; margin-bottom: 5px; }
+
+    #birthday-counter {
+      margin: 20px 0; background: rgba(0, 0, 0, 0.4);
+      padding: 15px 10px; border-radius: 15px; border: 1px solid var(--element-color);
+    }
+    .time-box { display: flex; justify-content: space-around; gap: 5px; margin-top: 10px; }
+    .time-unit {
+      background: var(--element-color); padding: 8px 5px;
+      border-radius: 8px; min-width: 45px; font-weight: bold; font-size: 18px;
+      display: inline-block;
+    }
+    small { font-size: 11px; margin-top: 4px; display: block; }
+
+    .result {
+      margin-top: 20px; padding: 20px; border-radius: 15px;
+      background: rgba(255, 255, 255, 0.05); display: none;
+      border-left: 5px solid var(--element-color);
+      text-align: left;
+    }
+
+    .sign-icon { font-size: 50px; margin-bottom: 10px; text-align: center; }
+    .element-badge {
+      display: inline-block; padding: 6px 15px; border-radius: 20px;
+      font-size: 12px; font-weight: bold; margin-bottom: 15px;
+      background: var(--element-color); letter-spacing: 1px;
+    }
+    .ascendant-box {
+      margin-top: 20px; padding-top: 15px;
+      border-top: 1px ridge rgba(255,255,255,0.2);
+    }
+
+    /* MOBİL UYUMLULUK (Responsive) */
+    @media (max-width: 480px) {
+      h1 { font-size: 20px; }
+      .container { padding: 20px 15px; }
+      .time-unit { min-width: 40px; font-size: 16px; }
+      input { font-size: 14px; padding: 10px 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="celestial sun"></div>
+  <div class="celestial moon"></div>
+  <div id="stars-container"></div>
+
+  <div class="container">
+    <div id="element-label" class="element-badge" style="display:none;">ELEMENT</div>
+    <h1>✨ Gökyüzü Rehberin</h1>
+    
+    <div class="input-group">
+      <input type="number" id="day" placeholder="Gün" min="1" max="31">
+      <input type="number" id="month" placeholder="Ay" min="1" max="12">
+      <input type="number" id="year" placeholder="Yıl" min="1900">
+    </div>
+    
+    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 5px;">Doğum Saati ve Dakikası (Opsiyonel)</p>
+    <div class="input-group" style="margin-top: 0;">
+      <input type="number" id="hour" placeholder="Saat" min="0" max="23">
+      <input type="number" id="minute" placeholder="Dak." min="0" max="59">
+    </div>
+
+    <button onclick="analizEt()">HESAPLA</button>
+
+    <div id="yas-sayaci"></div>
+
+    <div id="birthday-counter" style="display:none;">
+      <p style="font-size: 13px; color: #e0b0ff;">Doğum Gününe Kalan Süre</p>
+      <div class="time-box">
+        <div><span class="time-unit" id="d-left">00</span><br><small>Gün</small></div>
+        <div><span class="time-unit" id="h-left">00</span><br><small>Saat</small></div>
+        <div><span class="time-unit" id="m-left">00</span><br><small>Dak</small></div>
+        <div><span class="time-unit" id="s-left">00</span><br><small>Sn</small></div>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="sign-icon" id="sign-icon"></div>
+      <h2 id="burc-adi" style="margin-bottom:10px; font-size: 20px; text-align: center;"></h2>
+      <p id="burc-yorum" style="font-size: 14px; line-height: 1.6;"></p>
+      
+      <div class="ascendant-box" id="ascendant-area" style="display:none;">
+        <h3 id="yukseklen-baslik" style="color:var(--element-color); margin-bottom:8px; font-size: 18px;"></h3>
+        <p id="yukseklen-yorum" style="font-style: italic; font-size: 13px; opacity: 0.9; line-height: 1.5;"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ================================================================
+       3. ANİMASYON VE TASARIM YARDIMCILARI (JS)
+       ================================================================ */
+    const starContainer = document.getElementById('stars-container');
+    for (let i = 0; i < 80; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size = Math.random() * 2;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+      starContainer.appendChild(star);
+    }
+
+    /* ================================================================
+       4. ANA İŞLEM MANTIĞI VE VERİ GİRİŞİ (JS)
+       ================================================================ */
+    let birthDateObj = null;
+    let timerId = null;
+
+    function analizEt() {
+      // Inputlardan verilerin alınması
+      const d = parseInt(document.getElementById("day").value);
+      const m = parseInt(document.getElementById("month").value);
+      const y = parseInt(document.getElementById("year").value);
+      const hStr = document.getElementById("hour").value;
+      const h = parseInt(hStr) || 0;
+      const min = parseInt(document.getElementById("minute").value) || 0;
+
+      // Hata Kontrolleri (Validation)
+      if (y && y < 1900) { alert("Lütfen 1900 ve sonrası bir yıl giriniz!"); return; }
+      if (!d || !m || !y) { alert("Lütfen tarih bilgilerini eksiksiz girin!"); return; }
+      const testDate = new Date(y, m - 1, d);
+      if (testDate.getMonth() !== m - 1 || testDate.getDate() !== d) { alert("Geçersiz tarih!"); return; }
+
+      birthDateObj = new Date(y, m - 1, d, h, min);
+      if (birthDateObj > new Date()) { alert("Gelecek tarih girilemez!"); return; }
+
+      // Analiz ve Tema Uygulama
+      const burc = getBurc(d, m);
+      const info = burcBilgileri[burc];
+      const theme = elementData[info.element];
+      
+      // Dinamik CSS Güncelleme (Renk ve Tema)
+      document.documentElement.style.setProperty('--element-color', theme.color);
+      document.documentElement.style.setProperty('--element-shadow', theme.shadow);
+      document.documentElement.style.setProperty('--element-bg', `radial-gradient(circle at bottom, ${theme.bg} 0%, #090A0F 100%)`);
+      
+      // UI Elemanlarını Güncelleme
+      document.getElementById("element-label").style.display = "inline-block";
+      document.getElementById("element-label").innerText = `${theme.icon} ${info.element} ELEMENTİ`;
+      document.getElementById("element-label").style.color = (info.element === "Hava") ? "#111" : "#fff";
+
+      document.getElementById("sign-icon").innerText = getBurcSymbol(burc);
+      document.getElementById("burc-adi").innerText = burc + " Burcu";
+      document.getElementById("burc-yorum").innerText = info.yorum;
+
+      // Yükselen Hesaplama (Eğer saat girilmişse)
+      if (hStr !== "") {
+        const yuk = getYukseklen(h);
+        document.getElementById("ascendant-area").style.display = "block";
+        document.getElementById("yukseklen-baslik").innerText = "🪐 Yükselen: " + yuk;
+        document.getElementById("yukseklen-yorum").innerText = burcBilgileri[yuk].yorum;
+      } else {
+        document.getElementById("ascendant-area").style.display = "none";
+      }
+
+      // Görünürlük ve Sayaç Başlatma
+      document.getElementById("result").style.display = "block";
+      document.getElementById("birthday-counter").style.display = "block";
+
+      if (timerId) clearInterval(timerId);
+      updateClock();
+      timerId = setInterval(updateClock, 1000);
+      
+      document.getElementById("result").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ================================================================
+       5. ZAMAN SAYACI VE HESAPLAMA FONKSİYONLARI (JS)
+       ================================================================ */
+    function updateClock() {
+      const now = new Date();
+      
+      // Toplam süre hesapları
+      let diff = now - birthDateObj;
+      let totalMin = Math.floor(diff / 60000);
+      let totalDay = Math.floor(totalMin / 1440);
+
+      // Ayrıntılı yaş hesabı (Yıl/Ay/Gün/Saat)
+      let y = now.getFullYear() - birthDateObj.getFullYear();
+      let m = now.getMonth() - birthDateObj.getMonth();
+      let d = now.getDate() - birthDateObj.getDate();
+      let hh = now.getHours() - birthDateObj.getHours();
+      let mm = now.getMinutes() - birthDateObj.getMinutes();
+
+      if (mm < 0) { hh--; mm += 60; }
+      if (hh < 0) { d--; hh += 24; }
+      if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+      if (m < 0) { y--; m += 12; }
+
+      // Ekrana yazdırma
+      document.getElementById("yas-sayaci").innerHTML = `
+        <span class="highlight-text">${y} Yıl, ${m} Ay, ${d} Gün</span>
+        <p>${hh} Saat, ${mm} Dakika önce dünyaya geldin.</p>
+        <p style="font-size:12px; margin-top:10px; opacity:0.7;">
+          Toplam hayatta kalınan süre: <br> 
+          <b>${totalDay.toLocaleString()}</b> gün veya <b>${totalMin.toLocaleString()}</b> dakika.
+        </p>
+      `;
+
+      // Bir sonraki doğum gününe kalan süre
+      let nextBday = new Date(now.getFullYear(), birthDateObj.getMonth(), birthDateObj.getDate(), birthDateObj.getHours(), birthDateObj.getMinutes());
+      if (nextBday < now) nextBday.setFullYear(now.getFullYear() + 1);
+      
+      let bDiff = nextBday - now;
+      document.getElementById("d-left").innerText = Math.floor(bDiff / 86400000);
+      document.getElementById("h-left").innerText = String(Math.floor((bDiff % 86400000) / 3600000)).padStart(2, '0');
+      document.getElementById("m-left").innerText = String(Math.floor((bDiff % 3600000) / 60000)).padStart(2, '0');
+      document.getElementById("s-left").innerText = String(Math.floor((bDiff % 60000) / 1000)).padStart(2, '0');
+    }
+
+    /* ================================================================
+       6. ASTROLOJİK VERİ SETLERİ VE YARDIMCI FONKSİYONLAR (JS)
+       ================================================================ */
+    const elementData = {
+      "Ateş": { color: "#ff4500", shadow: "rgba(255, 69, 0, 0.5)", bg: "#3d0a00", icon: "🔥" },
+      "Toprak": { color: "#2ecc71", shadow: "rgba(46, 204, 113, 0.4)", bg: "#0a2d18", icon: "🌱" },
+      "Hava": { color: "#bdc3c7", shadow: "rgba(189, 195, 199, 0.5)", bg: "#2c3e50", icon: "🌬️" },
+      "Su": { color: "#3498db", shadow: "rgba(52, 152, 219, 0.5)", bg: "#001f3f", icon: "🌊" }
+    };
+
+    const burcBilgileri = {
+      "Koç": { element: "Ateş", yorum: "Cesur, öncü ve sabırsızdır. Enerjisiyle başlatma gücüne sahiptir, rekabeti sever ve dürüstlüğüyle tanınan doğal bir liderdir." },
+      "Boğa": { element: "Toprak", yorum: "Güvenilir, sabırlı ve keyifçidir. Maddi güvenceye önem verir, sadıktır ve hayatın estetik yanlarından büyük zevk alır." },
+      "İkizler": { element: "Hava", yorum: "Değişken, meraklı ve iletişimcidir. Hızlı düşünür, sosyal ortamlara kolay uyum sağlar ve bilgi paylaşmaktan büyük keyif alır." },
+      "Yengeç": { element: "Su", yorum: "Şefkatli, korumacı ve hassastır. Aidiyet duygusu yüksektir, ailesine bağlıdır ve sezgileriyle duyguları derinlemesine hisseder." },
+      "Aslan": { element: "Ateş", yorum: "Özgüvenli, cömert ve yaratıcıdır. İlgi odağı olmayı sever, korumacı bir doğası vardır ve girdiği her ortamda parlar." },
+      "Başak": { element: "Toprak", yorum: "Analitik, titiz ve çalışkandır. Detaylara odaklanır, mükemmeliyetçidir ve çevresindekilere faydalı olmayı hayat amacı edinir." },
+      "Terazi": { element: "Hava", yorum: "Zarif, adil ve uyumludur. Estetik duygusu gelişmiştir, ilişkilerde denge arar ve huzursuzluktan kaçınarak orta yolu bulur." },
+      "Akrep": { element: "Su", yorum: "Tutkulu, stratejik ve gizemlidir. Güçlü bir iradeye sahiptir, dönüşümü sever ve olayların perde arkasını görebilen sezgisi vardır." },
+      "Yay": { element: "Ateş", yorum: "Özgürlükçü, iyimser ve maceracıdır. Keşfetmeye aşıktır, felsefi bir bakış açısına sahiptir ve her zaman yeni bilgilerin peşinden koşar." },
+      "Oğlak": { element: "Toprak", yorum: "Disiplinli, hırslı ve sorumluluk sahibidir. Stratejik düşünür, geleneklerine bağlıdır ve zirveye ulaşmak için sabırla çalışır." },
+      "Kova": { element: "Hava", yorum: "Özgün, vizyoner ve insancıldır. Toplumsal konulara duyarlıdır, yenilikçi fikirleri savunur ve özgürlüğüne çok düşkündür." },
+      "Balık": { element: "Su", yorum: "Empatik, hayalperest ve fedakardır. Sanatsal ruhludur, sınır tanımaz bir şefkati vardır ve dünyayı manevi bir gözle algılar." }
+    };
+
+    function getBurc(d, m) {
+      if ((m == 3 && d >= 21) || (m == 4 && d <= 19)) return "Koç";
+      if ((m == 4 && d >= 20) || (m == 5 && d <= 20)) return "Boğa";
+      if ((m == 5 && d >= 21) || (m == 6 && d <= 20)) return "İkizler";
+      if ((m == 6 && d >= 21) || (m == 7 && d <= 22)) return "Yengeç";
+      if ((m == 7 && d >= 23) || (m == 8 && d <= 22)) return "Aslan";
+      if ((m == 8 && d >= 23) || (m == 9 && d <= 22)) return "Başak";
+      if ((m == 9 && d >= 23) || (m == 10 && d <= 22)) return "Terazi";
+      if ((m == 10 && d >= 23) || (m == 11 && d <= 21)) return "Akrep";
+      if ((m == 11 && d >= 22) || (m == 12 && d <= 21)) return "Yay";
+      if ((m == 12 && d >= 22) || (m == 1 && d <= 19)) return "Oğlak";
+      if ((m == 1 && d >= 20) || (m == 2 && d <= 18)) return "Kova";
+      return "Balık";
+    }
+
+    function getBurcSymbol(b) {
+      const s = {"Koç":"♈","Boğa":"♉","İkizler":"♊","Yengeç":"♋","Aslan":"♌","Başak":"♍","Terazi":"♎","Akrep":"♏","Yay":"♐","Oğlak":"♑","Kova":"♒","Balık":"♓"};
+      return s[b];
+    }
+
+    function getYukseklen(h) {
+      const b = ["Koç","Boğa","İkizler","Yengeç","Aslan","Başak","Terazi","Akrep","Yay","Oğlak","Kova","Balık"];
+      return b[Math.floor(((h + 18) % 24) / 2)];
+    }
+  </script>
+</body>
+</html>
